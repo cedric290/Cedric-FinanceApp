@@ -135,7 +135,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:.88rem;margin-top:8p
 
 /* App: Sync-Anzeige, Anmeldung, Hinweise */
 h1{display:flex;align-items:center;gap:10px}
-.logo{width:34px;height:34px;border-radius:9px;flex:none}
+.logo{width:40px;height:40px;border-radius:10px;flex:none}
 .topright{display:flex;align-items:center;gap:10px}
 .sync{font-size:.8rem;color:var(--muted);display:flex;align-items:center;gap:6px;border:none;background:none;padding:4px 0}
 .sync i{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block}
