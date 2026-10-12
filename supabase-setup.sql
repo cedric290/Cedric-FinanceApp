@@ -33,3 +33,6 @@ end $$;
 drop trigger if exists items_touch on public.items;
 create trigger items_touch before insert or update on public.items
   for each row execute function public.items_touch();
+
+-- Schnittstelle sofort über die neue Tabelle informieren.
+notify pgrst, 'reload schema';

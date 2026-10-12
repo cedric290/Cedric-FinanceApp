@@ -1,6 +1,6 @@
 // Speichert die App-Dateien, damit die App auch ohne Internet startet.
 // Erst Netz, dann Zwischenspeicher: Updates kommen sofort an, offline gilt die letzte Version.
-const CACHE = "kosten-v2";
+const CACHE = "kosten-v3";
 const ASSETS = ["./", "index.html", "style.css", "app.js", "config.js", "manifest.webmanifest", "icon.svg", "icon-180.png", "icon-192.png", "icon-512.png"];
 
 self.addEventListener("install", e => {
