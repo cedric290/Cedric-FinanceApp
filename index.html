@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kosten-Tracker</title>
+<meta name="theme-color" content="#2563eb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Kosten">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <div class="top">
+    <h1>Kosten-Tracker</h1>
+    <div class="topright">
+      <button class="sync" id="sync" type="button" title="Jetzt synchronisieren" hidden><i></i><span></span></button>
+      <button class="gear" id="gear" aria-pressed="false" aria-label="Einstellungen" hidden>⚙</button>
+    </div>
+  </div>
+
+  <!-- Einrichtung fehlt -->
+  <section id="v-setup" class="card" hidden>
+    <h2>Einrichtung fehlt</h2>
+    <p>In <code>config.js</code> fehlen die Supabase-Adresse und der Schlüssel. Trage beide ein und lade die Dateien neu hoch. Die Schritte stehen in der Anleitung.</p>
+  </section>
+
+  <!-- Anmeldung -->
+  <section id="v-login" class="card login" hidden>
+    <h2>Anmelden</h2>
+    <p class="hint" style="margin-top:0">Einmal pro Gerät anmelden. Danach sind PC und Handy verbunden.</p>
+    <form id="loginForm" autocomplete="on">
+      <label>E-Mail<input id="li-email" type="email" autocomplete="username" required></label>
+      <label>Passwort<input id="li-pw" type="password" autocomplete="current-password" minlength="6" required></label>
+      <div class="btns">
+        <button class="primary" type="submit" id="li-login">Anmelden</button>
+        <button type="button" id="li-signup">Konto erstellen</button>
+      </div>
+      <p class="msg" id="li-msg"></p>
+    </form>
+  </section>
+
+  <!-- App -->
+  <div id="v-app" hidden>
+    <nav class="tabs" role="tablist" aria-label="Bereiche">
+      <button role="tab" data-tab="uebersicht" aria-selected="true">Übersicht</button>
+      <button role="tab" data-tab="buchen" aria-selected="false">Buchen</button>
+      <button role="tab" data-tab="vermoegen" aria-selected="false">Vermögen</button>
+      <button role="tab" data-tab="abos" aria-selected="false">Abos</button>
+      <button role="tab" data-tab="offen" aria-selected="false">Offen<span class="badge" id="openBadge" hidden></span></button>
+    </nav>
+
+    <div id="banner" class="banner" hidden></div>
+
+    <!-- Übersicht -->
+    <section id="p-uebersicht">
+      <div class="card" id="welcome" hidden>
+        <h2>Willkommen</h2>
+        <p class="hint" style="margin-top:0">Lege zuerst unter <b>Vermögen</b> deine Konten an, z. B. Volksbank, Revolut und Bargeld. Danach kannst du Einnahmen und Ausgaben buchen.</p>
+        <div class="quick"><button class="primary" data-act="goto-acc">Konto anlegen</button></div>
+      </div>
+      <div class="card">
+        <div class="stats">
+          <div class="stat"><div class="l" id="sInL">Einnahmen</div><div class="v pos" id="sIn">–</div><div class="s" id="sInS"></div></div>
+          <div class="stat"><div class="l" id="sOutL">Ausgaben</div><div class="v" id="sOut">–</div><div class="s" id="sOutS"></div></div>
+          <div class="stat"><div class="l">Bilanz Monat</div><div class="v" id="sBal">–</div><div class="s" id="sBalS"></div></div>
+          <div class="stat"><div class="l">Gesamtvermögen</div><div class="v" id="sWorth">–</div><div class="s" id="sWorthS"></div></div>
+        </div>
+        <div class="quick">
+          <button class="primary" data-act="goto-out">− Ausgabe</button>
+          <button class="primary in" data-act="goto-in">+ Einnahme</button>
+          <button data-act="goto-move">⇄ Verschieben</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="stats three">
+          <div class="stat"><div class="l">Abos pro Monat</div><div class="v" id="sSubs">–</div><div class="s" id="sSubsS"></div></div>
+          <div class="stat"><div class="l">Offene Rechnungen</div><div class="v" id="sOpen">–</div><div class="s" id="sOpenS"></div></div>
+          <div class="stat"><div class="l">Fällig in 7 Tagen</div><div class="v" id="sDue">–</div><div class="s" id="sDueS"></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Letzte 6 Monate</h2>
+        <div class="chart" id="chart"></div>
+        <div class="legend"><span><i style="background:var(--ok)"></i>Einnahmen</span><span><i style="background:var(--danger)"></i>Ausgaben</span></div>
+      </div>
+      <div class="card">
+        <h2>Als Nächstes fällig <span class="meta">(30 Tage)</span></h2>
+        <ul id="upcoming"></ul>
+      </div>
+      <div class="card">
+        <h2 id="inCatTitle">Einnahmen nach Quelle</h2>
+        <div class="bars" id="inCats"></div>
+        <h2 id="catTitle" style="margin-top:18px">Ausgaben nach Kategorie</h2>
+        <div class="bars" id="cats"></div>
+      </div>
+    </section>
+
+    <!-- Buchen -->
+    <section id="p-buchen" hidden>
+      <div class="card">
+        <div class="seg" style="margin-bottom:14px" role="group" aria-label="Art">
+          <button type="button" data-type="out" class="on">− Ausgabe</button>
+          <button type="button" data-type="in">+ Einnahme</button>
+        </div>
+        <form id="fx" class="grid" autocomplete="off">
+          <label>Betrag (€)<input id="fx-amount" inputmode="decimal" placeholder="12,50" required></label>
+          <label>Datum<input id="fx-date" type="date" required></label>
+          <label class="full" id="fx-catL">Kategorie<input id="fx-cat" placeholder="Wählen oder neu eintippen"></label>
+          <div class="chips full" id="fx-chips"></div>
+          <div class="lbl full" id="fx-accL">Bezahlt von</div>
+          <div class="chips full" id="fx-acc"></div>
+          <label class="full">Notiz<input id="fx-note" placeholder="z. B. Rewe, Tanken"></label>
+          <div class="btns full"><button class="primary" type="submit" id="fx-btn">Ausgabe speichern</button><button type="button" id="fx-cancel" hidden>Abbrechen</button></div>
+        </form>
+      </div>
+      <div class="card">
+        <div class="monthnav">
+          <button data-act="month" data-d="-1" aria-label="Vorheriger Monat">‹</button>
+          <div style="text-align:center"><strong id="mLabel"></strong><div class="sum" id="mSum"></div></div>
+          <button data-act="month" data-d="1" aria-label="Nächster Monat">›</button>
+        </div>
+        <div class="seg filter" role="group" aria-label="Filter">
+          <button type="button" data-filter="all" class="on">Alle</button>
+          <button type="button" data-filter="in">Einnahmen</button>
+          <button type="button" data-filter="out">Ausgaben</button>
+        </div>
+        <div id="txList"></div>
+      </div>
+    </section>
+
+    <!-- Vermögen -->
+    <section id="p-vermoegen" hidden>
+      <div class="card">
+        <div class="meta">Gesamtvermögen</div>
+        <div class="worth" id="worth">0,00 €</div>
+        <div class="meta" id="worthS"></div>
+        <h3>Wo das Geld ist</h3>
+        <ul id="accList"></ul>
+      </div>
+      <div class="card" id="historyCard" hidden>
+        <h2 id="historyTitle">Verlauf</h2>
+        <ul id="historyList"></ul>
+      </div>
+      <div class="card" id="moveCard">
+        <h2>Geld verschieben</h2>
+        <form id="fm" class="grid" autocomplete="off">
+          <label>Von<select id="fm-from"></select></label>
+          <label>Nach<select id="fm-to"></select></label>
+          <label>Betrag (€)<input id="fm-amount" inputmode="decimal" placeholder="100" required></label>
+          <label>Datum<input id="fm-date" type="date" required></label>
+          <label class="full">Notiz<input id="fm-note" placeholder="z. B. Bargeld eingezahlt"></label>
+          <div class="btns full"><button class="primary" type="submit">Verschieben</button></div>
+        </form>
+        <h3>Letzte Umbuchungen</h3>
+        <ul id="moveList"></ul>
+      </div>
+      <div class="card">
+        <h2 id="faTitle">Konto anlegen</h2>
+        <form id="fa" class="grid" autocomplete="off">
+          <label class="full">Name<input id="fa-name" placeholder="z. B. Volksbank, Revolut, Bargeld" required></label>
+          <label class="full" id="fa-startL">Aktueller Stand (€)<input id="fa-start" inputmode="decimal" placeholder="1000" required></label>
+          <div class="btns full"><button class="primary" type="submit" id="fa-btn">Konto anlegen</button><button type="button" id="fa-cancel" hidden>Abbrechen</button></div>
+        </form>
+        <p class="hint">Trage ein, was heute auf dem Konto ist. Ab dann rechnet die App mit jeder Einnahme, Ausgabe und Umbuchung selbst weiter. Weicht der Stand ab, nutze „Stand korrigieren“.</p>
+      </div>
+    </section>
+
+    <!-- Abos -->
+    <section id="p-abos" hidden>
+      <div class="card">
+        <h2 id="fsTitle">Abo hinzufügen</h2>
+        <form id="fs" class="grid" autocomplete="off">
+          <label class="full">Name<input id="fs-name" placeholder="z. B. Netflix" required></label>
+          <label>Preis (€)<input id="fs-price" inputmode="decimal" placeholder="9,99" required></label>
+          <label>Abbuchung<select id="fs-cycle">
+            <option value="1">monatlich</option><option value="3">vierteljährlich</option>
+            <option value="6">halbjährlich</option><option value="12">jährlich</option><option value="w">wöchentlich</option>
+          </select></label>
+          <label class="full">Nächste Abbuchung<input id="fs-next" type="date" required></label>
+          <label class="full">Kategorie<input id="fs-cat" placeholder="Wählen oder neu eintippen"></label>
+          <div class="chips full" id="fs-chips"></div>
+          <div class="lbl full">Abgebucht von</div>
+          <div class="chips full" id="fs-acc"></div>
+          <div class="btns full"><button class="primary" type="submit" id="fs-btn">Hinzufügen</button><button type="button" id="fs-cancel" hidden>Abbrechen</button></div>
+        </form>
+        <p class="hint">Jede Abbuchung erscheint nach dem Termin automatisch unter Buchen und wird vom Konto abgezogen.</p>
+      </div>
+      <div class="card">
+        <h2>Meine Abos <span class="meta" id="subsSum"></span></h2>
+        <ul id="subList"></ul>
+      </div>
+    </section>
+
+    <!-- Offen -->
+    <section id="p-offen" hidden>
+      <div class="card">
+        <h2>Offene Rechnung eintragen</h2>
+        <form id="fp" class="grid" autocomplete="off">
+          <label class="full">Händler / Was<input id="fp-merchant" placeholder="z. B. Zalando" required></label>
+          <label>Betrag gesamt (€)<input id="fp-amount" inputmode="decimal" placeholder="89,90" required></label>
+          <label>Anbieter<select id="fp-provider"><option>Klarna</option><option>PayPal</option><option>Rechnung</option><option>Sonstiges</option></select></label>
+          <label class="full">Fällig am<input id="fp-due" type="date" required></label>
+          <label>Raten<select id="fp-parts"><option value="1">1</option><option value="3">3</option><option value="4">4</option><option value="6">6</option><option value="12">12</option></select></label>
+          <label>Abstand<select id="fp-gap"><option value="30d">30 Tage</option><option value="1m">1 Monat</option></select></label>
+          <label class="full">Kategorie<input id="fp-cat" placeholder="Wählen oder neu eintippen"></label>
+          <div class="chips full" id="fp-chips"></div>
+          <div class="lbl full">Wird bezahlt von</div>
+          <div class="chips full" id="fp-acc"></div>
+          <div class="btns full"><button class="primary" type="submit">Eintragen</button></div>
+        </form>
+        <p class="hint">Bei Raten ist „Fällig am“ die erste Rate. Hakst du eine Rate als bezahlt ab, wird sie zur Ausgabe und vom Konto abgezogen.</p>
+      </div>
+      <div class="card">
+        <h2>Offen <span class="meta" id="openSum"></span></h2>
+        <ul id="payList"></ul>
+        <details id="paidWrap"><summary id="paidSummary">Bezahlt</summary><ul id="paidList" style="margin-top:8px"></ul></details>
+      </div>
+    </section>
+
+    <!-- Einstellungen -->
+    <section id="p-mehr" hidden>
+      <div class="card">
+        <h2>Kategorien</h2>
+        <p class="hint" style="margin-top:0">Neue Kategorien entstehen beim Eintragen. Benennst du eine wie eine andere um, werden beide zusammengeführt.</p>
+        <h3>Einnahmen</h3>
+        <ul id="catListIn"></ul>
+        <h3>Ausgaben</h3>
+        <ul id="catListOut"></ul>
+      </div>
+      <div class="card">
+        <h2>Konto &amp; Sync</h2>
+        <p id="acctInfo" class="meta"></p>
+        <div class="quick">
+          <button data-act="sync-now">Jetzt synchronisieren</button>
+          <button data-act="logout">Abmelden</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Daten sichern</h2>
+        <p class="hint" style="margin-top:0">Deine Daten liegen in deiner Supabase-Datenbank. Zusätzlich kannst du eine Sicherungsdatei speichern. Einlesen geht auch mit einer Sicherung aus der Testversion oder dem alten Kosten-Tracker auf claude.ai.</p>
+        <div class="quick">
+          <button data-act="export">Sicherung speichern</button>
+          <button data-act="import-pick">Sicherung einlesen</button>
+          <input type="file" id="importFile" accept=".json,application/json" hidden>
+        </div>
+        <div id="importBox" class="hint" hidden></div>
+      </div>
+      <div class="card">
+        <h2>Als App installieren</h2>
+        <div id="installBox"></div>
+      </div>
+    </section>
+  </div>
+</main>
+<div class="toast" id="toast" hidden></div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
