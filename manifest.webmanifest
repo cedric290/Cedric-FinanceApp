@@ -1,15 +1,16 @@
 {
-  "name": "Cedric Finance",
-  "short_name": "Finance",
-  "description": "Einnahmen, Ausgaben, Konten, Abos und offene Rechnungen. Synchron auf PC und Handy.",
+  "name": "Stetig",
+  "short_name": "Stetig",
+  "description": "Dein täglicher Habit-Tracker für mehr Konstanz.",
   "lang": "de",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#020b1f",
-  "theme_color": "#020b1f",
+  "orientation": "portrait",
+  "background_color": "#f9f4f2",
+  "theme_color": "#f9f4f2",
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ]
 }

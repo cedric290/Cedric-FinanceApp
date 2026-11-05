@@ -1,0 +1,2 @@
+/* Nur in der installierten App: Abstand zur Statusleiste. */
+.page { padding-top: calc(14px + env(safe-area-inset-top, 0px)); }
